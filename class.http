@@ -1,0 +1,78 @@
+### POST Create New Class
+POST http://localhost:8989/classes
+Content-Type: application/json
+Authorization: 123
+
+{
+  "name": "Class 4",
+  "subjects": [
+    {
+      "id": "2",
+      "name": "Physics",
+      "teacher": {
+        "id": "2",
+        "name": "Jane Doe"
+      }
+    },
+    {
+      "id": "5",
+      "name": "History",
+      "teacher": {
+        "id": "5",
+        "name": "Michael Brown"
+      }
+    }
+  ]
+}
+
+###
+
+### GET All Classes
+GET http://localhost:8989/classes
+Authorization: 123
+Accept: application/json
+
+###
+
+### GET Specific Class (ID = 1)
+GET http://localhost:8989/classes/1
+Authorization: 123
+Accept: application/json
+
+###
+
+### PUT Update Class (ID = 1)
+PUT http://localhost:8989/classes/1
+Content-Type: application/json
+Authorization: 123
+
+{
+  "name": "Updated Class 1",
+  "subjects": [
+    {
+      "id": "3",
+      "name": "Chemistry",
+      "teacher": {
+        "id": "3",
+        "name": "Albert Johnson"
+      }
+    }
+  ]
+}
+
+###
+
+### PATCH Partially Update Class (ID = 1)
+PATCH http://localhost:8989/classes/1
+Content-Type: application/json
+Authorization: 123
+
+{
+  "name": "Partially Updated Class 1"
+}
+
+###
+
+### DELETE Class (ID = 4)
+DELETE http://localhost:8989/classes/4
+Authorization: 123

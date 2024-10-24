@@ -9,6 +9,8 @@ import classesRoutes from './routes/classes.js';
 
 const app = express();
 
+app.use(express.json());
+
 app.get('/', (req, res) => {
     res.send("School API!");
 });
