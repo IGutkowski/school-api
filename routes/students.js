@@ -1,5 +1,6 @@
 import express from 'express';
 import {classes} from "./classes.js";
+import { authorize } from "../auth.js";
 
 const router = express.Router();
 
@@ -17,39 +18,129 @@ export const students = [
 ];
 
 router.get('/', (req, res) => {
-    res.json(students);
+    res.status(200).json(students); // 200 - OK
 });
 
 router.get('/:id', (req, res) => {
     const student = students.find(s => s.id === req.params.id);
+
     if (student) {
-        res.json(student);
+        res.status(200).json(student); // 200 - OK
     } else {
-        res.status(404).send("Student not found");
+        res.status(404).send("Student not found"); // 404 - Not Found
     }
 });
 
-//average grades for a student in a subject
+// GET average grades for a student in a specific subject
 router.get('/:id/subjects/:subject', (req, res) => {
     const student = students.find(s => s.id === req.params.id);
+
     if (student) {
         const grades = student.grades[req.params.subject];
         const average = grades.reduce((a, b) => a + b, 0) / grades.length;
-        res.json({ average });
+        res.status(200).json({ average }); // 200 - OK
     } else {
-        res.status(404).send("Student not found");
+        res.status(404).send("Student not found"); // 404 - Not Found
     }
 });
 
-//absences for a student in a subject
+// GET absences for a student in a specific subject
 router.get('/:id/absences/:subject', (req, res) => {
     const student = students.find(s => s.id === req.params.id);
+
     if (student) {
         const absences = student.absences[req.params.subject];
-        res.json({ absences });
+        res.status(200).json({ absences }); // 200 - OK
     } else {
-        res.status(404).send("Student not found");
+        res.status(404).send("Student not found"); // 404 - Not Found
     }
 });
+
+router.post('/', authorize, (req, res) => {
+    const { name, age, gender, classId, grades, absences } = req.body;
+
+    if (!name || !age || !gender || !classId) {
+        return res.status(400).send("Bad Request: Missing required fields"); // 400 - Bad Request
+    }
+
+    const newId = (students.length + 1).toString();
+    const newClass = classes.find(c => c.id === classId);
+
+    const newStudent = {
+        id: newId,
+        name,
+        age,
+        gender,
+        class: newClass,
+        grades: grades || {},
+        absences: absences || {}
+    };
+
+    students.push(newStudent);
+    res.status(201).json(newStudent); // 201 - Created
+});
+
+
+
+router.put('/:id', authorize, (req, res) => {
+    const { name, age, gender, classId, grades, absences } = req.body;
+    const studentIndex = students.findIndex(s => s.id === req.params.id);
+
+    if (studentIndex === -1) {
+        return res.status(404).send("Student not found"); // 404 - Not Found
+    }
+
+    if (!name || !age || !gender || !classId) {
+        return res.status(400).send("Bad Request: Missing required fields"); // 400 - Bad Request
+    }
+
+    const updatedClass = classes.find(c => c.id === classId); // Pobieramy klasę
+    const updatedStudent = {
+        id: req.params.id,
+        name,
+        age,
+        gender,
+        class: updatedClass,
+        grades: grades || students[studentIndex].grades,
+        absences: absences || students[studentIndex].absences
+    };
+
+    students[studentIndex] = updatedStudent;
+    res.status(200).json(updatedStudent); // 200 - OK
+});
+
+router.patch('/:id', authorize, (req, res) => {
+    const studentIndex = students.findIndex(s => s.id === req.params.id);
+
+    if (studentIndex === -1) {
+        return res.status(404).send("Student not found"); // 404 - Not Found
+    }
+
+    const updatedStudent = {
+        ...students[studentIndex],
+        ...req.body
+    };
+
+    students[studentIndex] = updatedStudent;
+    res.status(200).json(updatedStudent); // 200 - OK
+});
+
+
+
+
+
+router.delete('/:id', authorize, (req, res) => {
+    const studentIndex = students.findIndex(s => s.id === req.params.id);
+
+    if (studentIndex === -1) {
+        return res.status(404).send("Student not found"); // 404 - Not Found
+    }
+
+    students.splice(studentIndex, 1);
+    res.status(204).send(); // 204 - No Content
+});
+
+
+
 
 export default router;

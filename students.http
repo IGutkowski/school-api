@@ -1,0 +1,74 @@
+### GET All Students
+GET http://localhost:8989/students
+Authorization: 123
+Accept: application/json
+
+###
+
+### GET Specific Student (ID = 1)
+GET http://localhost:8989/students/1
+Authorization: 123
+Accept: application/json
+
+###
+
+### POST Create New Student
+POST http://localhost:8989/students
+Content-Type: application/json
+Authorization: 123
+
+{
+  "name": "Sara White",
+  "age": 17,
+  "gender": "female",
+  "classId": "2",
+  "grades": {
+    "Chemistry": [5, 4],
+    "Biology": [4, 3]
+  },
+  "absences": {
+    "Chemistry": 2,
+    "Biology": 1
+  }
+}
+
+###
+
+### PUT Update Student (ID = 1)
+PUT http://localhost:8989/students/1
+Content-Type: application/json
+Authorization: 123
+
+{
+  "name": "Updated Alice Green",
+  "age": 16,
+  "gender": "female",
+  "classId": "1",
+  "grades": {
+    "Mathematics": [4, 5],
+    "Physics": [3, 4]
+  },
+  "absences": {
+    "Mathematics": 2,
+    "Physics": 1
+  }
+}
+
+###
+
+### PATCH Partially Update Student (ID = 1)
+PATCH http://localhost:8989/students/1
+Content-Type: application/json
+Authorization: 123
+
+{
+  "grades": {
+    "Mathematics": [5]
+  }
+}
+
+###
+
+### DELETE Student (ID = 10)
+DELETE http://localhost:8989/students/10
+Authorization: 123
