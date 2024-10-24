@@ -1,0 +1,58 @@
+### GET All Subjects
+GET http://localhost:8989/subjects
+Authorization: 123
+Accept: application/json
+
+###
+
+### GET Specific Subject (ID = 1)
+GET http://localhost:8989/subjects/1
+Authorization: 123
+Accept: application/json
+
+###
+
+### POST Create New Subject
+POST http://localhost:8989/subjects
+Content-Type: application/json
+Authorization: 123
+
+{
+  "name": "Geography",
+  "teacher": {
+    "id": "6",
+    "name": "Sarah White"
+  }
+}
+
+###
+
+### PUT Update Subject (ID = 1)
+PUT http://localhost:8989/subjects/1
+Content-Type: application/json
+Authorization: 123
+
+{
+  "name": "Advanced Mathematics",
+  "teacher": {
+    "id": "1",
+    "name": "John Smith"
+  }
+}
+
+###
+
+### PATCH Partially Update Subject (ID = 1)
+PATCH http://localhost:8989/subjects/1
+Content-Type: application/json
+Authorization: 123
+
+{
+  "name": "Updated Mathematics"
+}
+
+###
+
+### DELETE Subject (ID = 5)
+DELETE http://localhost:8989/subjects/5
+Authorization: 123
