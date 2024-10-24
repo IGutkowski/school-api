@@ -1,0 +1,54 @@
+### GET All Teachers
+GET http://localhost:8989/teachers
+Authorization: 123
+Accept: application/json
+
+###
+
+### GET Specific Teacher (ID = 1)
+GET http://localhost:8989/teachers/1
+Authorization: 123
+Accept: application/json
+
+###
+
+### POST Create New Teacher
+POST http://localhost:8989/teachers
+Content-Type: application/json
+Authorization: 123
+
+{
+  "name": "Sarah White",
+  "gender": "female",
+  "subject": "Geography"
+}
+
+###
+
+### PUT Update Teacher (ID = 1)
+PUT http://localhost:8989/teachers/1
+Content-Type: application/json
+Authorization: 123
+
+{
+  "name": "Updated John Smith",
+  "gender": "male",
+  "subject": "Advanced Mathematics"
+}
+
+###
+
+### PATCH Partially Update Teacher (ID = 1)
+PATCH http://localhost:8989/teachers/1
+Content-Type: application/json
+Authorization: 123
+
+{
+  "name": "Partially Updated John Smith"
+}
+
+###
+
+### DELETE Teacher (ID = 5)
+DELETE http://localhost:8989/teachers/5
+Authorization: 123

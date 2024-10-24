@@ -1,5 +1,5 @@
 import express from 'express';
-
+import { authorize } from '../auth.js';
 
 const router = express.Router();
 
@@ -12,16 +12,77 @@ export const teachers = [
 ];
 
 router.get('/', (req, res) => {
-    res.json(teachers);
+    res.status(200).json(teachers); // 200 - OK
 });
 
 router.get('/:id', (req, res) => {
     const teacher = teachers.find(t => t.id === req.params.id);
+
     if (teacher) {
-        res.json(teacher);
+        res.status(200).json(teacher); // 200 - OK
     } else {
-        res.status(404).send("Teacher not found");
+        res.status(404).send("Teacher not found"); // 404 - Not Found
     }
 });
 
+router.post('/', authorize, (req, res) => {
+    const { name, gender, subject } = req.body;
+
+    if (!name || !gender || !subject) {
+        return res.status(400).send("Bad Request: Missing required fields"); // 400 - Bad Request
+    }
+
+    const newId = (teachers.length + 1).toString();
+    const newTeacher = { id: newId, name, gender, subject };
+    teachers.push(newTeacher);
+
+    res.status(201).json(newTeacher);  // 201 - Created
+});
+
+router.put('/:id', authorize, (req, res) => {
+    const { name, gender, subject } = req.body;
+    const teacherIndex = teachers.findIndex(t => t.id === req.params.id);
+
+    if (teacherIndex === -1) {
+        return res.status(404).send("Teacher not found"); // 404 - Not Found
+    }
+
+    if (!name || !gender || !subject) {
+        return res.status(400).send("Bad Request: Missing required fields"); // 400 - Bad Request
+    }
+
+    const updatedTeacher = { id: req.params.id, name, gender, subject };
+    teachers[teacherIndex] = updatedTeacher;
+
+    res.status(200).json(updatedTeacher); // 200 - OK
+});
+
+router.patch('/:id', authorize, (req, res) => {
+    const teacherIndex = teachers.findIndex(t => t.id === req.params.id);
+
+    if (teacherIndex === -1) {
+        return res.status(404).send("Teacher not found"); // 404 - Not Found
+    }
+
+    const updatedTeacher = {
+        ...teachers[teacherIndex],
+        ...req.body
+    };
+
+    teachers[teacherIndex] = updatedTeacher;
+
+    res.status(200).json(updatedTeacher); // 200 - OK
+});
+
+router.delete('/:id', authorize, (req, res) => {
+    const teacherIndex = teachers.findIndex(t => t.id === req.params.id);
+
+    if (teacherIndex === -1) {
+        return res.status(404).send("Teacher not found"); // 404 - Not Found
+    }
+
+    teachers.splice(teacherIndex, 1);
+
+    res.status(204).send(); // 204 - No Content
+});
 export default router;
