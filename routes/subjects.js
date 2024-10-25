@@ -1,8 +1,13 @@
 import express from 'express';
 import { authorize } from "../auth.js";
+import { contentType } from "../contentType.js";
+import { cache } from "../cache.js";
+import {security} from "../security.js";
 
 
 const router = express.Router();
+
+router.use(security);
 
 export const subjects = [
     { id: '1', name: 'Mathematics', teacher: { id: '1', name: 'John Smith' } },
@@ -12,11 +17,11 @@ export const subjects = [
     { id: '5', name: 'History', teacher: { id: '5', name: 'Michael Brown' } },
 ];
 
-router.get('/', (req, res) => {
+router.get('/', cache, (req, res) => {
     res.status(200).json(subjects); // 200 - OK
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', cache, (req, res) => {
     const subject = subjects.find(s => s.id === req.params.id);
 
     if (subject) {
@@ -26,7 +31,7 @@ router.get('/:id', (req, res) => {
     }
 });
 
-router.post('/', authorize, (req, res) => {
+router.post('/', authorize, contentType,(req, res) => {
     const { name, teacher } = req.body;
 
     if (!name || !teacher || !teacher.id || !teacher.name) {
@@ -40,7 +45,7 @@ router.post('/', authorize, (req, res) => {
     res.status(201).json(newSubject);  // 201 - Created
 });
 
-router.put('/:id', authorize, (req, res) => {
+router.put('/:id', authorize, contentType,(req, res) => {
     const { name, teacher } = req.body;
     const subjectIndex = subjects.findIndex(s => s.id === req.params.id);
 
@@ -58,7 +63,7 @@ router.put('/:id', authorize, (req, res) => {
     res.status(200).json(updatedSubject); // 200 - OK
 });
 
-router.patch('/:id', authorize, (req, res) => {
+router.patch('/:id', authorize, contentType,(req, res) => {
     const subjectIndex = subjects.findIndex(s => s.id === req.params.id);
 
     if (subjectIndex === -1) {
@@ -75,7 +80,7 @@ router.patch('/:id', authorize, (req, res) => {
     res.status(200).json(updatedSubject); // 200 - OK
 });
 
-router.delete('/:id', authorize, (req, res) => {
+router.delete('/:id', authorize, contentType,(req, res) => {
     const subjectIndex = subjects.findIndex(s => s.id === req.params.id);
 
     if (subjectIndex === -1) {

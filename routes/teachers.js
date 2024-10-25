@@ -1,7 +1,12 @@
 import express from 'express';
 import { authorize } from '../auth.js';
+import {contentType} from "../contentType.js";
+import { cache } from "../cache.js";
+import {security} from "../security.js";
 
 const router = express.Router();
+
+router.use(security);
 
 export const teachers = [
     { id: '1', name: 'John Smith', gender: 'male', subject: 'Mathematics' },
@@ -11,11 +16,11 @@ export const teachers = [
     { id: '5', name: 'Michael Brown', gender: 'male', subject: 'History' },
 ];
 
-router.get('/', (req, res) => {
+router.get('/', cache, (req, res) => {
     res.status(200).json(teachers); // 200 - OK
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', cache, (req, res) => {
     const teacher = teachers.find(t => t.id === req.params.id);
 
     if (teacher) {
@@ -25,7 +30,7 @@ router.get('/:id', (req, res) => {
     }
 });
 
-router.post('/', authorize, (req, res) => {
+router.post('/', authorize, contentType, (req, res) => {
     const { name, gender, subject } = req.body;
 
     if (!name || !gender || !subject) {
@@ -39,7 +44,7 @@ router.post('/', authorize, (req, res) => {
     res.status(201).json(newTeacher);  // 201 - Created
 });
 
-router.put('/:id', authorize, (req, res) => {
+router.put('/:id', authorize, contentType, (req, res) => {
     const { name, gender, subject } = req.body;
     const teacherIndex = teachers.findIndex(t => t.id === req.params.id);
 
@@ -57,7 +62,7 @@ router.put('/:id', authorize, (req, res) => {
     res.status(200).json(updatedTeacher); // 200 - OK
 });
 
-router.patch('/:id', authorize, (req, res) => {
+router.patch('/:id', authorize, contentType,(req, res) => {
     const teacherIndex = teachers.findIndex(t => t.id === req.params.id);
 
     if (teacherIndex === -1) {
@@ -74,7 +79,7 @@ router.patch('/:id', authorize, (req, res) => {
     res.status(200).json(updatedTeacher); // 200 - OK
 });
 
-router.delete('/:id', authorize, (req, res) => {
+router.delete('/:id', authorize, contentType,(req, res) => {
     const teacherIndex = teachers.findIndex(t => t.id === req.params.id);
 
     if (teacherIndex === -1) {

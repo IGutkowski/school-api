@@ -1,8 +1,13 @@
 import express from 'express';
 import {classes} from "./classes.js";
 import { authorize } from "../auth.js";
+import { contentType } from "../contentType.js";
+import { cache } from "../cache.js";
+import {security} from "../security.js";
 
 const router = express.Router();
+
+router.use(security);
 
 export const students = [
     { id: '1', name: 'Alice Green', age: 15, gender: 'female', class: classes[0], grades: { Mathematics: [4, 5, 3], Physics: [5, 3, 4] }, absences: { Mathematics: 3, Physics: 1 } },
@@ -17,11 +22,11 @@ export const students = [
     { id: '10', name: 'Jack Orange', age: 16, gender: 'male', class: classes[0], grades: { Mathematics: [4, 3], Physics: [3, 4] }, absences: { Mathematics: 3, Physics: 1 } },
 ];
 
-router.get('/', (req, res) => {
+router.get('/', cache, (req, res) => {
     res.status(200).json(students); // 200 - OK
 });
 
-router.get('/:id', (req, res) => {
+router.get('/:id', cache, (req, res) => {
     const student = students.find(s => s.id === req.params.id);
 
     if (student) {
@@ -31,32 +36,7 @@ router.get('/:id', (req, res) => {
     }
 });
 
-// GET average grades for a student in a specific subject
-router.get('/:id/subjects/:subject', (req, res) => {
-    const student = students.find(s => s.id === req.params.id);
-
-    if (student) {
-        const grades = student.grades[req.params.subject];
-        const average = grades.reduce((a, b) => a + b, 0) / grades.length;
-        res.status(200).json({ average }); // 200 - OK
-    } else {
-        res.status(404).send("Student not found"); // 404 - Not Found
-    }
-});
-
-// GET absences for a student in a specific subject
-router.get('/:id/absences/:subject', (req, res) => {
-    const student = students.find(s => s.id === req.params.id);
-
-    if (student) {
-        const absences = student.absences[req.params.subject];
-        res.status(200).json({ absences }); // 200 - OK
-    } else {
-        res.status(404).send("Student not found"); // 404 - Not Found
-    }
-});
-
-router.post('/', authorize, (req, res) => {
+router.post('/', authorize, contentType,(req, res) => {
     const { name, age, gender, classId, grades, absences } = req.body;
 
     if (!name || !age || !gender || !classId) {
@@ -82,7 +62,7 @@ router.post('/', authorize, (req, res) => {
 
 
 
-router.put('/:id', authorize, (req, res) => {
+router.put('/:id', authorize, contentType,(req, res) => {
     const { name, age, gender, classId, grades, absences } = req.body;
     const studentIndex = students.findIndex(s => s.id === req.params.id);
 
@@ -94,7 +74,7 @@ router.put('/:id', authorize, (req, res) => {
         return res.status(400).send("Bad Request: Missing required fields"); // 400 - Bad Request
     }
 
-    const updatedClass = classes.find(c => c.id === classId); // Pobieramy klasę
+    const updatedClass = classes.find(c => c.id === classId);
     const updatedStudent = {
         id: req.params.id,
         name,
@@ -109,7 +89,7 @@ router.put('/:id', authorize, (req, res) => {
     res.status(200).json(updatedStudent); // 200 - OK
 });
 
-router.patch('/:id', authorize, (req, res) => {
+router.patch('/:id', authorize, contentType,(req, res) => {
     const studentIndex = students.findIndex(s => s.id === req.params.id);
 
     if (studentIndex === -1) {
@@ -129,7 +109,7 @@ router.patch('/:id', authorize, (req, res) => {
 
 
 
-router.delete('/:id', authorize, (req, res) => {
+router.delete('/:id', authorize, contentType,(req, res) => {
     const studentIndex = students.findIndex(s => s.id === req.params.id);
 
     if (studentIndex === -1) {
