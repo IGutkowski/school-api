@@ -14,8 +14,17 @@ app.use(express.json());
 app.use(cors());
 
 app.get('/', (req, res) => {
-    res.send("School API!");
+    res.json({
+        message: "Welcome to the School API!",
+        _links: {
+            allStudents: { href: `${req.protocol}://${req.get('host')}/students`, method: 'GET' },
+            allClasses: { href: `${req.protocol}://${req.get('host')}/classes`, method: 'GET' },
+            allTeachers: { href: `${req.protocol}://${req.get('host')}/teachers`, method: 'GET' },
+            allSubjects: { href: `${req.protocol}://${req.get('host')}/subjects`, method: 'GET' }
+        }
+    });
 });
+
 
 app.use('/students', studentsRoutes);
 app.use('/teachers', teachersRoutes);

@@ -1,12 +1,11 @@
 import express from 'express';
-import {classes} from "./classes.js";
-import { authorize } from "../auth.js";
-import { contentType } from "../contentType.js";
-import { cache } from "../cache.js";
-import {security} from "../security.js";
+import { classes } from './classes.js';
+import { authorize } from '../auth.js';
+import { contentType } from '../contentType.js';
+import { cache } from '../cache.js';
+import { security } from '../security.js';
 
 const router = express.Router();
-
 router.use(security);
 
 export const students = [
@@ -22,21 +21,52 @@ export const students = [
     { id: '10', name: 'Jack Orange', age: 16, gender: 'male', class: classes[0], grades: { Mathematics: [4, 3], Physics: [3, 4] }, absences: { Mathematics: 3, Physics: 1 } },
 ];
 
-router.get('/', cache, (req, res) => {
-    res.status(200).json(students); // 200 - OK
+router.get('/', (req, res) => {
+    if (students.length === 0) {
+        return res.status(404).send("No students found"); // 404 - Not Found
+    }
+
+    const studentsWithLinks = students.map(student => ({
+        ...student,
+        _links: {
+            main: { href: `${req.protocol}://${req.get('host')}/`, method: 'GET' },
+            self: { href: `${req.protocol}://${req.get('host')}/students/${student.id}`, method: 'GET' },
+            updatePartial: { href: `${req.protocol}://${req.get('host')}/students/${student.id}`, method: 'PATCH' },
+            updateFull: { href: `${req.protocol}://${req.get('host')}/students/${student.id}`, method: 'PUT' },
+            delete: { href: `${req.protocol}://${req.get('host')}/students/${student.id}`, method: 'DELETE' },
+            allStudents: { href: `${req.protocol}://${req.get('host')}/students`, method: 'GET' }
+        }
+    }));
+
+    res.status(200).json(studentsWithLinks); // 200 - OK
 });
+
+
 
 router.get('/:id', cache, (req, res) => {
     const student = students.find(s => s.id === req.params.id);
 
     if (student) {
-        res.status(200).json(student); // 200 - OK
+        const studentWithLinks = {
+            ...student,
+            _links: {
+                main: { href: `${req.protocol}://${req.get('host')}/`, method: 'GET' },
+                self: { href: `${req.protocol}://${req.get('host')}/students/${student.id}`, method: 'GET' },
+                updatePartial: { href: `${req.protocol}://${req.get('host')}/students/${student.id}`, method: 'PATCH' },
+                updateFull: { href: `${req.protocol}://${req.get('host')}/students/${student.id}`, method: 'PUT' },
+                delete: { href: `${req.protocol}://${req.get('host')}/students/${student.id}`, method: 'DELETE' },
+                allStudents: { href: `${req.protocol}://${req.get('host')}/students`, method: 'GET' }
+            }
+        };
+        res.status(200).json(studentWithLinks); // 200 - OK
     } else {
         res.status(404).send("Student not found"); // 404 - Not Found
     }
 });
 
-router.post('/', authorize, contentType,(req, res) => {
+
+
+router.post('/', authorize, contentType, (req, res) => {
     const { name, age, gender, classId, grades, absences } = req.body;
 
     if (!name || !age || !gender || !classId) {
@@ -60,9 +90,7 @@ router.post('/', authorize, contentType,(req, res) => {
     res.status(201).json(newStudent); // 201 - Created
 });
 
-
-
-router.put('/:id', authorize, contentType,(req, res) => {
+router.put('/:id', authorize, contentType, (req, res) => {
     const { name, age, gender, classId, grades, absences } = req.body;
     const studentIndex = students.findIndex(s => s.id === req.params.id);
 
@@ -89,7 +117,7 @@ router.put('/:id', authorize, contentType,(req, res) => {
     res.status(200).json(updatedStudent); // 200 - OK
 });
 
-router.patch('/:id', authorize, contentType,(req, res) => {
+router.patch('/:id', authorize, contentType, (req, res) => {
     const studentIndex = students.findIndex(s => s.id === req.params.id);
 
     if (studentIndex === -1) {
@@ -105,11 +133,7 @@ router.patch('/:id', authorize, contentType,(req, res) => {
     res.status(200).json(updatedStudent); // 200 - OK
 });
 
-
-
-
-
-router.delete('/:id', authorize, contentType,(req, res) => {
+router.delete('/:id', authorize, contentType, (req, res) => {
     const studentIndex = students.findIndex(s => s.id === req.params.id);
 
     if (studentIndex === -1) {
@@ -119,8 +143,5 @@ router.delete('/:id', authorize, contentType,(req, res) => {
     students.splice(studentIndex, 1);
     res.status(204).send(); // 204 - No Content
 });
-
-
-
 
 export default router;

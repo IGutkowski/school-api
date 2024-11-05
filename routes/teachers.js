@@ -17,16 +17,38 @@ export const teachers = [
 ];
 
 router.get('/', cache, (req, res) => {
-    res.status(200).json(teachers); // 200 - OK
+    const teachersWithLinks = teachers.map(teacher => ({
+        ...teacher,
+        _links: {
+            main: { href: `${req.protocol}://${req.get('host')}/`, method: 'GET' },
+            self: { href: `${req.protocol}://${req.get('host')}/teachers/${teacher.id}`, method: 'GET' },
+            updatePartial: { href: `${req.protocol}://${req.get('host')}/teachers/${teacher.id}`, method: 'PATCH' },
+            updateFull: { href: `${req.protocol}://${req.get('host')}/teachers/${teacher.id}`, method: 'PUT' },
+            delete: { href: `${req.protocol}://${req.get('host')}/teachers/${teacher.id}`, method: 'DELETE' },
+            allTeachers: { href: `${req.protocol}://${req.get('host')}/teachers`, method: 'GET' }
+        }
+    }));
+    res.status(200).json(teachersWithLinks);
 });
 
 router.get('/:id', cache, (req, res) => {
     const teacher = teachers.find(t => t.id === req.params.id);
 
     if (teacher) {
-        res.status(200).json(teacher); // 200 - OK
+        const teacherWithLinks = {
+            ...teacher,
+            _links: {
+                main: { href: `${req.protocol}://${req.get('host')}/`, method: 'GET' },
+                self: { href: `${req.protocol}://${req.get('host')}/teachers/${teacher.id}`, method: 'GET' },
+                updatePartial: { href: `${req.protocol}://${req.get('host')}/teachers/${teacher.id}`, method: 'PATCH' },
+                updateFull: { href: `${req.protocol}://${req.get('host')}/teachers/${teacher.id}`, method: 'PUT' },
+                delete: { href: `${req.protocol}://${req.get('host')}/teachers/${teacher.id}`, method: 'DELETE' },
+                allTeachers: { href: `${req.protocol}://${req.get('host')}/teachers`, method: 'GET' }
+            }
+        };
+        res.status(200).json(teacherWithLinks);
     } else {
-        res.status(404).send("Teacher not found"); // 404 - Not Found
+        res.status(404).send("Teacher not found");
     }
 });
 

@@ -18,16 +18,38 @@ export const classes = [
 ];
 
 router.get('/', cache, (req, res) => {
-    res.status(200).json(classes); // 200 - OK
+    const classesWithLinks = classes.map(clas => ({
+        ...clas,
+        _links: {
+            main: { href: `${req.protocol}://${req.get('host')}/`, method: 'GET' },
+            self: { href: `${req.protocol}://${req.get('host')}/classes/${clas.id}`, method: 'GET' },
+            updatePartial: { href: `${req.protocol}://${req.get('host')}/classes/${clas.id}`, method: 'PATCH' },
+            updateFull: { href: `${req.protocol}://${req.get('host')}/classes/${clas.id}`, method: 'PUT' },
+            delete: { href: `${req.protocol}://${req.get('host')}/classes/${clas.id}`, method: 'DELETE' },
+            allClasses: { href: `${req.protocol}://${req.get('host')}/classes`, method: 'GET' }
+        }
+    }));
+    res.status(200).json(classesWithLinks);
 });
 
 router.get('/:id', cache, (req, res) => {
     const clas = classes.find(c => c.id === req.params.id);
 
     if (clas) {
-        res.status(200).json(clas); // 200 - OK
+        const classWithLinks = {
+            ...clas,
+            _links: {
+                main: { href: `${req.protocol}://${req.get('host')}/`, method: 'GET' },
+                self: { href: `${req.protocol}://${req.get('host')}/classes/${clas.id}`, method: 'GET' },
+                updatePartial: { href: `${req.protocol}://${req.get('host')}/classes/${clas.id}`, method: 'PATCH' },
+                updateFull: { href: `${req.protocol}://${req.get('host')}/classes/${clas.id}`, method: 'PUT' },
+                delete: { href: `${req.protocol}://${req.get('host')}/classes/${clas.id}`, method: 'DELETE' },
+                allClasses: { href: `${req.protocol}://${req.get('host')}/classes`, method: 'GET' }
+            }
+        };
+        res.status(200).json(classWithLinks);
     } else {
-        res.status(404).send("Class not found"); // 404 - Not Found
+        res.status(404).send("Class not found");
     }
 });
 
