@@ -10,8 +10,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@apollo/server": "^4.11.2",
+    "apollo-server": "^3.13.0",
     "cors": "^2.8.5",
     "express": "^4.21.1",
+    "graphql": "^16.9.0",
+    "graphql-depth-limit": "^1.1.0",
+    "graphql-tag": "^2.12.6",
+    "graphql-type-json": "^0.3.2",
     "nodemon": "^3.1.7"
   }
 }
