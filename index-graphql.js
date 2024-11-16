@@ -39,10 +39,92 @@ const classes = [
     { id: '1', name: 'Class 1', subjectIds: ['1', '2'] },
     { id: '2', name: 'Class 2', subjectIds: ['3', '4'] },
     { id: '3', name: 'Class 3', subjectIds: ['5'] },
+    { id: '2', name: 'Class 2', subjectIds: ['1'] },
 ];
+const applyFilters = (data, filters) => {
+    if (!filters) return data;
+    return data.filter(item => {
+        let valid = true;
+        if (filters.name) {
+            if (filters.name.equals && item.name !== filters.name.equals) valid = false;
+            if (filters.name.contains && !item.name.includes(filters.name.contains)) valid = false;
+            if (filters.name.notEquals && item.name === filters.name.notEquals) valid = false;
+            if (filters.name.notContains && item.name.includes(filters.name.notContains)) valid = false;
+        }
+        if (filters.age) {
+            if (filters.age.equals && item.age !== filters.age.equals) valid = false;
+            if (filters.age.greaterThan && item.age <= filters.age.greaterThan) valid = false;
+            if (filters.age.lessThan && item.age >= filters.age.lessThan) valid = false;
+            if (filters.age.greaterThanOrEqual && item.age < filters.age.greaterThanOrEqual) valid = false;
+            if (filters.age.lessThanOrEqual && item.age > filters.age.lessThanOrEqual) valid = false;
+        }
+        return valid;
+    });
+};
+
+const applySortingAndPagination = (data, sortBy, limit, offset) => {
+    if (sortBy) data.sort((a, b) => (a[sortBy] > b[sortBy] ? 1 : -1));
+    if (offset) data = data.slice(offset);
+    if (limit) data = data.slice(0, limit);
+    return data;
+};
 
 const typeDefs = gql`
     scalar JSON
+
+    input StringFilter {
+        equals: String
+        contains: String
+        notEquals: String
+        notContains: String
+    }
+
+    input IntFilter {
+        equals: Int
+        greaterThan: Int
+        lessThan: Int
+        greaterThanOrEqual: Int
+        lessThanOrEqual: Int
+    }
+
+    input StudentFilter {
+        name: StringFilter
+        age: IntFilter
+        gender: String
+        classId: ID
+    }
+
+    input AddStudentInput {
+        name: String!
+        age: Int!
+        gender: String!
+        classId: ID!
+        grades: JSON
+        absences: JSON
+    }
+
+    input UpdateStudentInput {
+        id: ID!
+        name: String
+        age: Int
+        gender: String
+        classId: ID
+        grades: JSON
+        absences: JSON
+    }
+
+    input TeacherFilter {
+        name: StringFilter
+        gender: String
+    }
+
+    input ClassFilter {
+        name: StringFilter
+    }
+
+    input SubjectFilter {
+        name: StringFilter
+    }
 
     type Student {
         id: ID!
@@ -74,29 +156,26 @@ const typeDefs = gql`
     }
 
     type Query {
-        students: [Student]
+        students(filter: StudentFilter, sortBy: String, limit: Int, offset: Int): [Student]
         student(id: ID!): Student
-        teachers: [Teacher]
+        teachers(filter: TeacherFilter, sortBy: String, limit: Int, offset: Int): [Teacher]
         teacher(id: ID!): Teacher
-        classes: [Class]
+        classes(filter: ClassFilter, sortBy: String, limit: Int, offset: Int): [Class]
         class(id: ID!): Class
-        subjects: [Subject]
+        subjects(filter: SubjectFilter, sortBy: String, limit: Int, offset: Int): [Subject]
         subject(id: ID!): Subject
     }
-    
-        type Mutation {
-        addStudent(name: String!, age: Int!, gender: String!, classId: ID!, grades: JSON, absences: JSON): Student
-        updateStudent(id: ID!, name: String, age: Int, gender: String, classId: ID, grades: JSON, absences: JSON): Student
-        deleteStudent(id: ID!): Boolean
 
+    type Mutation {
+        addStudent(input: AddStudentInput!): Student
+        updateStudent(input: UpdateStudentInput!): Student
+        deleteStudent(id: ID!): Boolean
         addTeacher(name: String!, gender: String!, subjectId: ID!): Teacher
         updateTeacher(id: ID!, name: String, gender: String, subjectId: ID): Teacher
         deleteTeacher(id: ID!): Boolean
-
         addClass(name: String!, subjectIds: [ID!]!): Class
         updateClass(id: ID!, name: String, subjectIds: [ID!]): Class
         deleteClass(id: ID!): Boolean
-
         addSubject(name: String!, teacherId: ID!): Subject
         updateSubject(id: ID!, name: String, teacherId: ID): Subject
         deleteSubject(id: ID!): Boolean
@@ -106,47 +185,39 @@ const typeDefs = gql`
 const resolvers = {
     JSON: GraphQLJSON,
     Query: {
-        students: () => students,
-        student: (_, { id }) => students.find(student => student.id === id),
-        teachers: () => teachers,
-        teacher: (_, { id }) => teachers.find(teacher => teacher.id === id),
-        classes: () => classes,
-        class: (_, { id }) => classes.find(clas => clas.id === id),
-        subjects: () => subjects,
-        subject: (_, { id }) => subjects.find(subject => subject.id === id)
+        students: (_, { filter, sortBy, limit, offset }) => applySortingAndPagination(applyFilters(students, filter), sortBy, limit, offset),
+        student: (_, { id }) => students.find(s => s.id === id),
+        teachers: (_, { filter, sortBy, limit, offset }) => applySortingAndPagination(applyFilters(teachers, filter), sortBy, limit, offset),
+        teacher: (_, { id }) => teachers.find(t => t.id === id),
+        classes: (_, { filter, sortBy, limit, offset }) => applySortingAndPagination(applyFilters(classes, filter), sortBy, limit, offset),
+        class: (_, { id }) => classes.find(c => c.id === id),
+        subjects: (_, { filter, sortBy, limit, offset }) => applySortingAndPagination(applyFilters(subjects, filter), sortBy, limit, offset),
+        subject: (_, { id }) => subjects.find(s => s.id === id),
     },
     Student: {
-        class: (student) => classes.find(clas => clas.id === student.classId),
-        grades: (student) => student.grades,
-        absences: (student) => student.absences
+        class: student => classes.find(c => c.id === student.classId),
     },
     Teacher: {
-        subject: (teacher) => subjects.find(subject => subject.id === teacher.subjectId)
+        subject: teacher => subjects.find(s => s.id === teacher.subjectId),
     },
     Class: {
-        subjects: (clas) => clas.subjectIds.map(subjectId => subjects.find(subject => subject.id === subjectId))
+        subjects: clas => clas.subjectIds.map(id => subjects.find(s => s.id === id)),
     },
     Subject: {
-        teacher: (subject) => teachers.find(teacher => teacher.id === subject.teacherId)
+        teacher: subject => teachers.find(t => t.id === subject.teacherId),
     },
     Mutation: {
-        addStudent: (_, { name, age, gender, classId, grades = {}, absences = {} }) => {
-            const newStudent = { id: `${students.length + 1}`, name, age, gender, classId, grades, absences };
+        addStudent: (_, { input }) => {
+            const newStudent = { id: `${students.length + 1}`, ...input };
             students.push(newStudent);
             return newStudent;
         },
-        updateStudent: (_, { id, name, age, gender, classId, grades, absences }) => {
-            const student = students.find(s => s.id === id);
+        updateStudent: (_, { input }) => {
+            const student = students.find(s => s.id === input.id);
             if (!student) return null;
-            if (name !== undefined) student.name = name;
-            if (age !== undefined) student.age = age;
-            if (gender !== undefined) student.gender = gender;
-            if (classId !== undefined) student.classId = classId;
-            if (grades !== undefined) student.grades = grades;
-            if (absences !== undefined) student.absences = absences;
+            Object.assign(student, input);
             return student;
         },
-
         deleteStudent: (_, { id }) => {
             const index = students.findIndex(s => s.id === id);
             if (index === -1) return false;
@@ -207,22 +278,18 @@ const resolvers = {
             if (index === -1) return false;
             subjects.splice(index, 1);
             return true;
-        }
+        },
     },
 };
 
-
 const app = express();
-
 const apolloServer = new ApolloServer({
     typeDefs,
     resolvers,
-    validationRules: [depthLimit(4)]
+    validationRules: [depthLimit(4)],
 });
 await apolloServer.start();
 app.use('/graphql', cors(), express.json(), expressMiddleware(apolloServer));
-
 app.listen(8989, () => {
-    console.log("Started on http://localhost:8989/graphql");
+    console.log('Started on http://localhost:8989/graphql');
 });
-
