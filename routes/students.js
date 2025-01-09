@@ -21,6 +21,61 @@ export const students = [
     { id: '10', name: 'Jack Orange', age: 16, gender: 'male', class: classes[0], grades: { Mathematics: [4, 3], Physics: [3, 4] }, absences: { Mathematics: 3, Physics: 1 } },
 ];
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Student:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Unique identifier of the student.
+ *         name:
+ *           type: string
+ *           description: Name of the student.
+ *         age:
+ *           type: integer
+ *           description: Age of the student.
+ *         gender:
+ *           type: string
+ *           enum: [male, female, other]
+ *           description: Gender of the student.
+ *         class:
+ *           type: object
+ *           $ref: '#/components/schemas/Class'
+ *         grades:
+ *           type: object
+ *           additionalProperties:
+ *             type: array
+ *             items:
+ *               type: integer
+ *           description: Grades of the student.
+ *         absences:
+ *           type: object
+ *           additionalProperties:
+ *             type: integer
+ *           description: Absences of the student.
+ */
+
+/**
+ * @swagger
+ * /students:
+ *   get:
+ *     summary: Retrieve all students
+ *     tags: [Students]
+ *     responses:
+ *       200:
+ *         description: A list of students.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Student'
+ *       404:
+ *         description: No students found.
+ */
 router.get('/', (req, res) => {
     if (students.length === 0) {
         return res.status(404).send("No students found"); // 404 - Not Found
@@ -42,7 +97,29 @@ router.get('/', (req, res) => {
 });
 
 
-
+/**
+ * @swagger
+ * /students/{id}:
+ *   get:
+ *     summary: Retrieve a specific student by ID
+ *     tags: [Students]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The student ID
+ *     responses:
+ *       200:
+ *         description: Student data retrieved.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Student'
+ *       404:
+ *         description: Student not found.
+ */
 router.get('/:id', cache, (req, res) => {
     const student = students.find(s => s.id === req.params.id);
 
@@ -65,8 +142,59 @@ router.get('/:id', cache, (req, res) => {
 });
 
 
+/**
+ * @swagger
+ * /students:
+ *   post:
+ *     summary: Create a new student
+ *     tags: [Students]
+ *     security:
+ *       - customAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - age
+ *               - gender
+ *               - classId
+ *             properties:
+ *               name:
+ *                 type: string
+ *               age:
+ *                 type: integer
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *               classId:
+ *                 type: string
+ *               grades:
+ *                 type: object
+ *                 additionalProperties:
+ *                   type: array
+ *                   items:
+ *                     type: integer
+ *               absences:
+ *                 type: object
+ *                 additionalProperties:
+ *                   type: integer
+ *     responses:
+ *       201:
+ *         description: Student created successfully.
+ *       400:
+ *         description: Bad Request - Missing required fields.
+ *       401:
+ *         description: Unauthorized - Access denied. No token provided.
+ *       403:
+ *         description: Forbidden - Access denied. Invalid token.
+ *       415:
+ *         description: Unsupported Media Type - Server accepts only application/json data.
+ */
 
-router.post('/', authorize, contentType, (req, res) => {
+router.post('/', authorize, (req, res) => {
     const { name, age, gender, classId, grades, absences } = req.body;
 
     if (!name || !age || !gender || !classId) {
@@ -90,7 +218,80 @@ router.post('/', authorize, contentType, (req, res) => {
     res.status(201).json(newStudent); // 201 - Created
 });
 
-router.put('/:id', authorize, contentType, (req, res) => {
+/**
+ * @swagger
+ * /students/{id}:
+ *   put:
+ *     summary: Fully update a student
+ *     tags: [Students]
+ *     security:
+ *       - customAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The student ID
+ *       - in: header
+ *         name: Content-Type
+ *         schema:
+ *           type: string
+ *           example: application/json
+ *         required: true
+ *         description: The MIME type of the request.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - age
+ *               - gender
+ *               - classId
+ *             properties:
+ *               name:
+ *                 type: string
+ *               age:
+ *                 type: integer
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *               classId:
+ *                 type: string
+ *               grades:
+ *                 type: object
+ *                 additionalProperties:
+ *                   type: array
+ *                   items:
+ *                     type: integer
+ *               absences:
+ *                 type: object
+ *                 additionalProperties:
+ *                   type: integer
+ *     responses:
+ *       200:
+ *         description: Student updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Student'
+ *       400:
+ *         description: Bad Request - Missing required fields.
+ *       401:
+ *         description: Unauthorized - Access denied. No token provided.
+ *       403:
+ *         description: Forbidden - Access denied. Invalid token.
+ *       404:
+ *         description: Student not found.
+ *       415:
+ *         description: Unsupported Media Type - Server accepts only application/json data.
+ */
+
+
+router.put('/:id', authorize, (req, res) => {
     const { name, age, gender, classId, grades, absences } = req.body;
     const studentIndex = students.findIndex(s => s.id === req.params.id);
 
@@ -117,7 +318,71 @@ router.put('/:id', authorize, contentType, (req, res) => {
     res.status(200).json(updatedStudent); // 200 - OK
 });
 
-router.patch('/:id', authorize, contentType, (req, res) => {
+/**
+ * @swagger
+ * /students/{id}:
+ *   patch:
+ *     summary: Partially update a student
+ *     tags: [Students]
+ *     security:
+ *       - customAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The student ID
+ *       - in: header
+ *         name: Content-Type
+ *         schema:
+ *           type: string
+ *           example: application/json
+ *         required: true
+ *         description: The MIME type of the request.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               age:
+ *                 type: integer
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *               classId:
+ *                 type: string
+ *               grades:
+ *                 type: object
+ *                 additionalProperties:
+ *                   type: array
+ *                   items:
+ *                     type: integer
+ *               absences:
+ *                 type: object
+ *                 additionalProperties:
+ *                   type: integer
+ *     responses:
+ *       200:
+ *         description: Student updated successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Student'
+ *       401:
+ *         description: Unauthorized - Access denied. No token provided.
+ *       403:
+ *         description: Forbidden - Access denied. Invalid token.
+ *       404:
+ *         description: Student not found.
+ *       415:
+ *         description: Unsupported Media Type - Server accepts only application/json data.
+ */
+router.patch('/:id', authorize, (req, res) => {
     const studentIndex = students.findIndex(s => s.id === req.params.id);
 
     if (studentIndex === -1) {
@@ -133,7 +398,41 @@ router.patch('/:id', authorize, contentType, (req, res) => {
     res.status(200).json(updatedStudent); // 200 - OK
 });
 
-router.delete('/:id', authorize, contentType, (req, res) => {
+/**
+ * @swagger
+ * /students/{id}:
+ *   delete:
+ *     summary: Delete a student
+ *     tags: [Students]
+ *     security:
+ *       - customAuth: []  # Reference to the security scheme
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The student ID
+ *       - in: header
+ *         name: Content-Type
+ *         schema:
+ *           type: string
+ *           example: application/json
+ *         required: true
+ *         description: The MIME type of the request.
+ *     responses:
+ *       204:
+ *         description: Student deleted successfully.
+ *       401:
+ *         description: Unauthorized - Access denied. No token provided.
+ *       403:
+ *         description: Forbidden - Access denied. Invalid token.
+ *       404:
+ *         description: Student not found.
+ *       415:
+ *         description: Unsupported Media Type - Server accepts only application/json data.
+ */
+router.delete('/:id', authorize, (req, res) => {
     const studentIndex = students.findIndex(s => s.id === req.params.id);
 
     if (studentIndex === -1) {

@@ -16,6 +16,45 @@ export const teachers = [
     { id: '5', name: 'Michael Brown', gender: 'male', subject: 'History' },
 ];
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Teacher:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Unique identifier of the teacher.
+ *         name:
+ *           type: string
+ *           description: Name of the teacher.
+ *         gender:
+ *           type: string
+ *           enum: [male, female, other]
+ *           description: Gender of the teacher.
+ *         subject:
+ *           type: string
+ *           description: Subject the teacher specializes in.
+ */
+
+
+/**
+ * @swagger
+ * /teachers:
+ *   get:
+ *     summary: Retrieve all teachers
+ *     tags: [Teachers]
+ *     responses:
+ *       200:
+ *         description: A list of teachers.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Teacher'
+ */
 router.get('/', cache, (req, res) => {
     const teachersWithLinks = teachers.map(teacher => ({
         ...teacher,
@@ -31,6 +70,29 @@ router.get('/', cache, (req, res) => {
     res.status(200).json(teachersWithLinks);
 });
 
+/**
+ * @swagger
+ * /teachers/{id}:
+ *   get:
+ *     summary: Retrieve a specific teacher by ID
+ *     tags: [Teachers]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The teacher ID
+ *     responses:
+ *       200:
+ *         description: Teacher details retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Teacher'
+ *       404:
+ *         description: Teacher not found.
+ */
 router.get('/:id', cache, (req, res) => {
     const teacher = teachers.find(t => t.id === req.params.id);
 
@@ -52,7 +114,46 @@ router.get('/:id', cache, (req, res) => {
     }
 });
 
-router.post('/', authorize, contentType, (req, res) => {
+/**
+ * @swagger
+ * /teachers:
+ *   post:
+ *     summary: Create a new teacher
+ *     tags: [Teachers]
+ *     security:
+ *       - customAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - gender
+ *               - subject
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name of the teacher.
+ *               gender:
+ *                 type: string
+ *                 enum: [male, female, other]
+ *                 description: Gender of the teacher.
+ *               subject:
+ *                 type: string
+ *                 description: Subject the teacher specializes in.
+ *     responses:
+ *       201:
+ *         description: Teacher created successfully.
+ *       400:
+ *         description: Missing required fields.
+ *       401:
+ *         description: Unauthorized - No token provided.
+ *       403:
+ *         description: Forbidden - Invalid token.
+ */
+router.post('/', authorize, (req, res) => {
     const { name, gender, subject } = req.body;
 
     if (!name || !gender || !subject) {
@@ -66,7 +167,36 @@ router.post('/', authorize, contentType, (req, res) => {
     res.status(201).json(newTeacher);  // 201 - Created
 });
 
-router.put('/:id', authorize, contentType, (req, res) => {
+/**
+ * @swagger
+ * /teachers/{id}:
+ *   put:
+ *     summary: Fully update a teacher
+ *     tags: [Teachers]
+ *     security:
+ *       - customAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The teacher ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Teacher'
+ *     responses:
+ *       200:
+ *         description: Teacher updated successfully.
+ *       400:
+ *         description: Missing required fields.
+ *       404:
+ *         description: Teacher not found.
+ */
+router.put('/:id', authorize, (req, res) => {
     const { name, gender, subject } = req.body;
     const teacherIndex = teachers.findIndex(t => t.id === req.params.id);
 
@@ -84,7 +214,41 @@ router.put('/:id', authorize, contentType, (req, res) => {
     res.status(200).json(updatedTeacher); // 200 - OK
 });
 
-router.patch('/:id', authorize, contentType,(req, res) => {
+/**
+ * @swagger
+ * /teachers/{id}:
+ *   patch:
+ *     summary: Partially update a teacher
+ *     tags: [Teachers]
+ *     security:
+ *       - customAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The teacher ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               gender:
+ *                 type: string
+ *               subject:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Teacher updated successfully.
+ *       404:
+ *         description: Teacher not found.
+ */
+router.patch('/:id', authorize,(req, res) => {
     const teacherIndex = teachers.findIndex(t => t.id === req.params.id);
 
     if (teacherIndex === -1) {
@@ -101,7 +265,28 @@ router.patch('/:id', authorize, contentType,(req, res) => {
     res.status(200).json(updatedTeacher); // 200 - OK
 });
 
-router.delete('/:id', authorize, contentType,(req, res) => {
+/**
+ * @swagger
+ * /teachers/{id}:
+ *   delete:
+ *     summary: Delete a teacher
+ *     tags: [Teachers]
+ *     security:
+ *       - customAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The teacher ID
+ *     responses:
+ *       204:
+ *         description: Teacher deleted successfully.
+ *       404:
+ *         description: Teacher not found.
+ */
+router.delete('/:id', authorize,(req, res) => {
     const teacherIndex = teachers.findIndex(t => t.id === req.params.id);
 
     if (teacherIndex === -1) {

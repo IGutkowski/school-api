@@ -17,6 +17,49 @@ export const subjects = [
     { id: '5', name: 'History', teacher: { id: '5', name: 'Michael Brown' } },
 ];
 
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     Subject:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Unique identifier of the subject.
+ *         name:
+ *           type: string
+ *           description: Name of the subject.
+ *         teacher:
+ *           type: object
+ *           $ref: '#/components/schemas/Teacher'
+ *           properties:
+ *             id:
+ *               type: string
+ *               description: Unique identifier of the teacher.
+ *             name:
+ *               type: string
+ *               description: Name of the teacher.
+ */
+
+
+/**
+ * @swagger
+ * /subjects:
+ *   get:
+ *     summary: Retrieve all subjects
+ *     tags: [Subjects]
+ *     responses:
+ *       200:
+ *         description: A list of subjects.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/Subject'
+ */
 router.get('/', cache, (req, res) => {
     const subjectsWithLinks = subjects.map(subject => ({
         ...subject,
@@ -32,6 +75,30 @@ router.get('/', cache, (req, res) => {
     res.status(200).json(subjectsWithLinks);
 });
 
+
+/**
+ * @swagger
+ * /subjects/{id}:
+ *   get:
+ *     summary: Retrieve a specific subject by ID
+ *     tags: [Subjects]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The subject ID
+ *     responses:
+ *       200:
+ *         description: Subject details retrieved successfully.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Subject'
+ *       404:
+ *         description: Subject not found.
+ */
 router.get('/:id', cache, (req, res) => {
     const subject = subjects.find(s => s.id === req.params.id);
 
@@ -53,7 +120,51 @@ router.get('/:id', cache, (req, res) => {
     }
 });
 
-router.post('/', authorize, contentType,(req, res) => {
+
+/**
+ * @swagger
+ * /subjects:
+ *   post:
+ *     summary: Create a new subject
+ *     tags: [Subjects]
+ *     security:
+ *       - customAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - teacher
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Name of the subject.
+ *               teacher:
+ *                 type: object
+ *                 required:
+ *                   - id
+ *                   - name
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                     description: Unique identifier of the teacher.
+ *                   name:
+ *                     type: string
+ *                     description: Name of the teacher.
+ *     responses:
+ *       201:
+ *         description: Subject created successfully.
+ *       400:
+ *         description: Missing required fields.
+ *       401:
+ *         description: Unauthorized - No token provided.
+ *       403:
+ *         description: Forbidden - Invalid token.
+ */
+router.post('/', authorize,(req, res) => {
     const { name, teacher } = req.body;
 
     if (!name || !teacher || !teacher.id || !teacher.name) {
@@ -67,7 +178,40 @@ router.post('/', authorize, contentType,(req, res) => {
     res.status(201).json(newSubject);  // 201 - Created
 });
 
-router.put('/:id', authorize, contentType,(req, res) => {
+/**
+ * @swagger
+ * /subjects/{id}:
+ *   put:
+ *     summary: Fully update a subject
+ *     tags: [Subjects]
+ *     security:
+ *       - customAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The subject ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/Subject'
+ *     responses:
+ *       200:
+ *         description: Subject updated successfully.
+ *       400:
+ *         description: Missing required fields.
+ *       404:
+ *         description: Subject not found.
+ *       401:
+ *         description: Unauthorized - No token provided.
+ *       403:
+ *         description: Forbidden - Invalid token.
+ */
+router.put('/:id', authorize,(req, res) => {
     const { name, teacher } = req.body;
     const subjectIndex = subjects.findIndex(s => s.id === req.params.id);
 
@@ -85,7 +229,48 @@ router.put('/:id', authorize, contentType,(req, res) => {
     res.status(200).json(updatedSubject); // 200 - OK
 });
 
-router.patch('/:id', authorize, contentType,(req, res) => {
+/**
+ * @swagger
+ * /subjects/{id}:
+ *   patch:
+ *     summary: Partially update a subject
+ *     tags: [Subjects]
+ *     security:
+ *       - customAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The subject ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               teacher:
+ *                 type: object
+ *                 properties:
+ *                   id:
+ *                     type: string
+ *                   name:
+ *                     type: string
+ *     responses:
+ *       200:
+ *         description: Subject updated successfully.
+ *       404:
+ *         description: Subject not found.
+ *       401:
+ *         description: Unauthorized - No token provided.
+ *       403:
+ *         description: Forbidden - Invalid token.
+ */
+router.patch('/:id', authorize,(req, res) => {
     const subjectIndex = subjects.findIndex(s => s.id === req.params.id);
 
     if (subjectIndex === -1) {
@@ -102,7 +287,33 @@ router.patch('/:id', authorize, contentType,(req, res) => {
     res.status(200).json(updatedSubject); // 200 - OK
 });
 
-router.delete('/:id', authorize, contentType,(req, res) => {
+
+/**
+ * @swagger
+ * /subjects/{id}:
+ *   delete:
+ *     summary: Delete a subject
+ *     tags: [Subjects]
+ *     security:
+ *       - customAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The subject ID
+ *     responses:
+ *       204:
+ *         description: Subject deleted successfully.
+ *       404:
+ *         description: Subject not found.
+ *       401:
+ *         description: Unauthorized - No token provided.
+ *       403:
+ *         description: Forbidden - Invalid token.
+ */
+router.delete('/:id', authorize,(req, res) => {
     const subjectIndex = subjects.findIndex(s => s.id === req.params.id);
 
     if (subjectIndex === -1) {
