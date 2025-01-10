@@ -6,6 +6,11 @@ import classesRoutes from './routes/classes.js';
 import cors from 'cors';
 import swaggerUi from 'swagger-ui-express';
 import swaggerSpec from './swagger.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 
 
@@ -14,6 +19,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use('/docs', express.static(path.join(__dirname, 'my-docs/build')));
 
 app.get('/', (req, res) => {
     res.json({
