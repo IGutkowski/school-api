@@ -1,0 +1,87 @@
+syntax = "proto3";
+
+package school.students;
+
+import "common.proto";
+import "classes.proto";
+
+message Grade {
+  string subjectId = 1;
+  repeated int32 scores = 2;
+}
+
+message Absence {
+  string subjectId = 1;
+  int32 count = 2;
+}
+
+message Student {
+  string id = 1;
+  string name = 2;
+  int32 age = 3;
+  string gender = 4;
+  school.classes.Class classInfo = 5;
+  repeated Grade grades = 6;
+  repeated Absence absences = 7;
+}
+
+
+message ListStudentsRequest {
+  repeated school.common.Filter filters = 1;
+  repeated school.common.Sort sorts = 2;
+  school.common.Pagination pagination = 3;
+}
+
+message ListStudentsResponse {
+  repeated Student students = 1;
+}
+
+message GetStudentRequest {
+  string id = 1;
+}
+
+message GetStudentResponse {
+  Student student = 1;
+}
+
+message CreateStudentRequest {
+  string name = 1;
+  int32 age = 2;
+  string gender = 3;
+  string classId = 4;
+  repeated Grade grades = 5;
+  repeated Absence absences = 6;
+}
+
+message CreateStudentResponse {
+  Student student = 1;
+}
+
+message UpdateStudentRequest {
+  string id = 1;
+  string name = 2;
+  int32 age = 3;
+  string gender = 4;
+  string classId = 5;
+  repeated Grade grades = 6;
+  repeated Absence absences = 7;
+}
+
+message UpdateStudentResponse {
+  Student student = 1;
+}
+
+message DeleteStudentRequest {
+  string id = 1;
+}
+
+message DeleteStudentResponse {}
+
+
+service StudentsService {
+  rpc ListStudents (ListStudentsRequest) returns (ListStudentsResponse);
+  rpc GetStudent (GetStudentRequest) returns (GetStudentResponse);
+  rpc CreateStudent (CreateStudentRequest) returns (CreateStudentResponse);
+  rpc UpdateStudent (UpdateStudentRequest) returns (UpdateStudentResponse);
+  rpc DeleteStudent (DeleteStudentRequest) returns (DeleteStudentResponse);
+}

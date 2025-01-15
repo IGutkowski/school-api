@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package school.teachers;
+
+import "common.proto";
+
+message Teacher {
+  string id = 1;
+  string name = 2;
+  string gender = 3;
+  string subject = 4;
+}
+
+
+message ListTeachersRequest {
+  repeated school.common.Filter filters = 1;
+  repeated school.common.Sort sorts = 2;
+  school.common.Pagination pagination = 3;
+}
+
+message ListTeachersResponse {
+  repeated Teacher teachers = 1;
+}
+
+message GetTeacherRequest {
+  string id = 1;
+}
+
+message GetTeacherResponse {
+  Teacher teacher = 1;
+}
+
+message CreateTeacherRequest {
+  string name = 1;
+  string gender = 2;
+  string subject = 3;
+}
+
+message CreateTeacherResponse {
+  Teacher teacher = 1;
+}
+
+message UpdateTeacherRequest {
+  string id = 1;
+  string name = 2;
+  string gender = 3;
+  string subject = 4;
+}
+
+message UpdateTeacherResponse {
+  Teacher teacher = 1;
+}
+
+message DeleteTeacherRequest {
+  string id = 1;
+}
+
+message DeleteTeacherResponse {}
+
+
+service TeachersService {
+  rpc ListTeachers (ListTeachersRequest) returns (ListTeachersResponse);
+  rpc GetTeacher (GetTeacherRequest) returns (GetTeacherResponse);
+  rpc CreateTeacher (CreateTeacherRequest) returns (CreateTeacherResponse);
+  rpc UpdateTeacher (UpdateTeacherRequest) returns (UpdateTeacherResponse);
+  rpc DeleteTeacher (DeleteTeacherRequest) returns (DeleteTeacherResponse);
+}

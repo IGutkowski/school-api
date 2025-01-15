@@ -1,0 +1,65 @@
+syntax = "proto3";
+
+package school.classes;
+
+import "common.proto";
+import "subjects.proto";
+
+message Class {
+  string id = 1;
+  string name = 2;
+  repeated school.subjects.Subject subjects = 3;
+}
+
+
+message ListClassesRequest {
+  repeated school.common.Filter filters = 1;
+  repeated school.common.Sort sorts = 2;
+  school.common.Pagination pagination = 3;
+}
+
+message ListClassesResponse {
+  repeated Class classes = 1;
+}
+
+message GetClassRequest {
+  string id = 1;
+}
+
+message GetClassResponse {
+  Class classObj = 1;
+}
+
+message CreateClassRequest {
+  string name = 1;
+  repeated string subjectIds = 2;
+}
+
+message CreateClassResponse {
+  Class classObj = 1;
+}
+
+message UpdateClassRequest {
+  string id = 1;
+  string name = 2;
+  repeated string subjectIds = 3;
+}
+
+message UpdateClassResponse {
+  Class classObj = 1;
+}
+
+message DeleteClassRequest {
+  string id = 1;
+}
+
+message DeleteClassResponse {}
+
+
+service ClassesService {
+  rpc ListClasses (ListClassesRequest) returns (ListClassesResponse);
+  rpc GetClass (GetClassRequest) returns (GetClassResponse);
+  rpc CreateClass (CreateClassRequest) returns (CreateClassResponse);
+  rpc UpdateClass (UpdateClassRequest) returns (UpdateClassResponse);
+  rpc DeleteClass (DeleteClassRequest) returns (DeleteClassResponse);
+}

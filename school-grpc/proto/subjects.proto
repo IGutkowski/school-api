@@ -1,0 +1,67 @@
+syntax = "proto3";
+
+package school.subjects;
+
+import "common.proto";
+import "teachers.proto";
+
+message Subject {
+  string id = 1;
+  string name = 2;
+  school.teachers.Teacher teacher = 3;
+}
+
+
+message ListSubjectsRequest {
+  repeated school.common.Filter filters = 1;
+  repeated school.common.Sort sorts = 2;
+  school.common.Pagination pagination = 3;
+}
+
+message ListSubjectsResponse {
+  repeated Subject subjects = 1;
+}
+
+message GetSubjectRequest {
+  string id = 1;
+}
+
+message GetSubjectResponse {
+  Subject subject = 1;
+}
+
+message CreateSubjectRequest {
+  string name = 1;
+  string teacherId = 2;
+  string teacherName = 3; // for demo
+}
+
+message CreateSubjectResponse {
+  Subject subject = 1;
+}
+
+message UpdateSubjectRequest {
+  string id = 1;
+  string name = 2;
+  string teacherId = 3;
+  string teacherName = 4;
+}
+
+message UpdateSubjectResponse {
+  Subject subject = 1;
+}
+
+message DeleteSubjectRequest {
+  string id = 1;
+}
+
+message DeleteSubjectResponse {}
+
+
+service SubjectsService {
+  rpc ListSubjects (ListSubjectsRequest) returns (ListSubjectsResponse);
+  rpc GetSubject (GetSubjectRequest) returns (GetSubjectResponse);
+  rpc CreateSubject (CreateSubjectRequest) returns (CreateSubjectResponse);
+  rpc UpdateSubject (UpdateSubjectRequest) returns (UpdateSubjectResponse);
+  rpc DeleteSubject (DeleteSubjectRequest) returns (DeleteSubjectResponse);
+}
